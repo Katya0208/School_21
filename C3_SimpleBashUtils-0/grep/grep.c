@@ -11,20 +11,64 @@ void flag_e(FILE *f, char *arr);
 void flag_i(FILE *f, char *arr);
 void flag_v(FILE *f, char *arr);
 int flag_c(FILE *f, char *arr);
-void flag_l(char *r, char *arr);
+void flag_l(FILE *f, char *arr, char *file_name);
 void flag_n(FILE *f, char *arr);
 int find(char *arr1, char *arr2);
 void poisk(char *arr1, char *arr2);
 int have_mask(char *arr1, char *arr2);
 
 int main(int argc, char **argv) {
-  // ./a.out -n ololo file1 file2 ...
   int a = 0;
   while (argv[a + 1][0] == '-') {
     a++;
   }
-  if (argv[1][1] == 'l') {
-    flag_l(argv[3], argv[2]);
+
+  if (argv[1][1] == 'e') {
+    int i;
+    int search_i;
+    int search_count = 0;
+
+    int file_count = 0;
+    char *search_list[argc];
+    char *file_list[argc];
+    char buffer[1024];
+    FILE *fp;
+
+    for (i = 1; i < argc; i++) {
+      if (!strcmp(argv[i], "-e")) {
+        search_list[search_count++] = argv[++i];
+      } else {
+        file_list[file_count++] = argv[i];
+      }
+    }
+
+    if (search_count == 0) {
+      printf("No search string provided.\n");
+      return 1;
+    }
+
+    if (file_count == 0) {
+      printf("No file provided.\n");
+      return 1;
+    }
+
+    for (search_i = 0; search_i < search_count; search_i++) {
+      for (i = 0; i < file_count; i++) {
+        fp = fopen(file_list[i], "r");
+        if (fp == NULL) {
+          printf("Cannot open file %s\n", file_list[i]);
+          continue;
+        }
+
+        while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+          if (have_mask(search_list[search_i], buffer)) {
+            printf("%s: ", file_list[i]);
+          }
+          poisk(search_list[search_i], buffer);
+        }
+        fclose(fp);
+      }
+    }
   } else {
     for (int i = 2 + a; i < argc; i++) {
       FILE *f;
@@ -35,22 +79,17 @@ int main(int argc, char **argv) {
         continue;
       } else {
         if (a == 0) {
-          simple_grep(f, argv[1 + a]);  // f - файл, argv[1 + a] - строка,
-                                        // которую нужно найти
+          simple_grep(f, argv[1 + a]);
         }
-        if (argv[1][1] == 'e') {
-          // flag_e(f);
+        if (argv[1][1] == 'l') {
+          flag_l(f, argv[1 + a], argv[i]);
         } else if (argv[1][1] == 'i') {
-          flag_i(f, argv[1 + a]);  // готов
+          flag_i(f, argv[1 + a]);
         } else if (argv[1][1] == 'v') {
-          flag_v(f, argv[1 + a]);  // готов
+          flag_v(f, argv[1 + a]);
         } else if (argv[1][1] == 'c') {
-          flag_c(f, argv[1 + a]);  // готов
-        }
-        // else if (argv[1][1] == 'l') {
-        //   flag_l(argv[3 + a], argv[2 + a]);
-        // }
-        else if (argv[1][1] == 'n') {  // готов
+          flag_c(f, argv[1 + a]);
+        } else if (argv[1][1] == 'n') {
           flag_n(f, argv[1 + a]);
         }
       }
@@ -62,8 +101,7 @@ int main(int argc, char **argv) {
 
 void simple_grep(FILE *f, char *arr) {
   char c[SIZE];
-  while (!feof(f)) {
-    fgets(c, SIZE, f);
+  while (fgets(c, SIZE, f)) {
     poisk(arr, c);
   }
 }
@@ -73,12 +111,14 @@ void flag_i(FILE *f, char *arr) {
 
   while (fgets(c, SIZE, f)) {
     int i = 0;
-    for (i = 0; i < strlen(c); i++) {
+    int n_c = strlen(c);
+    for (i = 0; i < n_c; i++) {
       if (c[i] != 0) {
         c[i] = tolower(c[i]);
       }
     }
-    for (i = 0; i < strlen(arr); i++) {
+    int n_arr = strlen(arr);
+    for (i = 0; i < n_arr; i++) {
       if (arr[i] != 0) {
         arr[i] = tolower(arr[i]);
       }
@@ -90,18 +130,17 @@ void flag_i(FILE *f, char *arr) {
 int flag_c(FILE *f, char *arr) {
   int k = 0;
   char c[SIZE];
-  while (!feof(f)) {
-    fgets(c, SIZE, f);
+  while (fgets(c, SIZE, f)) {
     k += have_mask(arr, c);
   }
-  printf("%d", k);
+  printf("%d\n", k);
+  return k;
 }
 
 void flag_n(FILE *f, char *arr) {
   int n = 1;
   char c[SIZE];
-  while (!feof(f)) {
-    fgets(c, SIZE, f);
+  while (fgets(c, SIZE, f)) {
     if (have_mask(arr, c)) {
       printf("%d: ", n);
       poisk(arr, c);
@@ -112,38 +151,21 @@ void flag_n(FILE *f, char *arr) {
 
 void flag_v(FILE *f, char *arr) {
   char c[SIZE];
-  while (!feof(f)) {
-    fgets(c, SIZE, f);
+  while (fgets(c, SIZE, f)) {
     if (have_mask(arr, c) == 0) {
       printf("%s", c);
     }
   }
 }
 
-void flag_l(char *r, char *arr) {  // не файл, а строка с расширением
-
-  DIR *dir = opendir(".");
-  if (dir == NULL) {
-    printf("ERROR");
-  }
-  struct dirent *entity;
-  entity = readdir(dir);
-  while (entity != NULL) {
-    if (have_mask(r, entity->d_name)) {
-      FILE *f;
-      f = fopen(entity->d_name, "raw");
-      char c[SIZE];
-      while (!feof(f)) {
-        fgets(c, SIZE, f);
-        if (have_mask(arr, c) == 1) {
-          printf("%s\n", entity->d_name);
-        }
-      }
+void flag_l(FILE *f, char *arr, char *file_name) {
+  char c[SIZE];
+  while (fgets(c, SIZE, f)) {
+    if (have_mask(arr, c)) {
+      printf("%s\n", file_name);
+      break;
     }
-    // printf("\n");
-    entity = readdir(dir);
   }
-  closedir(dir);
 }
 
 void poisk(char *arr1, char *arr2) {
@@ -184,14 +206,12 @@ int have_mask(char *arr1, char *arr2) {
     if (rc == PCRE_ERROR_NOMATCH) {
       break;
     } else if (rc < -1) {
-      // fprintf(stderr, "error %d from regex\n", rc);
       break;
     } else {
       startoffsed = ovector[1];
 
       for (int i = 0; i < rc; i++) {
         pcre_get_substring(arr2, ovector, rc, i, &substring);
-        // printf("%d: %s\n", i, substring);
         n += 1;
         pcre_free_substring(substring);
       }
