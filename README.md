@@ -24,22 +24,22 @@ Program: [grep.c](https://github.com/Katya0208/School_21/blob/main/bash-utils/gr
 
 To run programs, Makefiles are located in the corresponding folders.
 
-### 4. linux-basics - analysis of basic commands in working with linux
+### 4. linux-basics - analysis of basic commands in working with linux.
 
 Report on the work done: [report_s21.c](https://github.com/Katya0208/School_21/blob/main/linux-basics/report_s21.md)
 
-### 5. linux-network - working with the network in linux
+### 5. linux-network - working with the network in linux.
 
 Report on the work done: [report_s21.c](https://github.com/Katya0208/School_21/blob/main/linux-network/report_s21.md)
 
-### 6. string-functions - implementation of the string.h library
+### 6. string-functions - implementation of the string.h library.
 
 Implementation of all library functions: [s21_string.c](https://github.com/Katya0208/School_21/blob/main/string-functions/s21_string.c)
 
 To run programs, Makefiles are located in the corresponding folders. Goal to launch [test.c] is called [test](https://github.com/Katya0208/School_21/blob/main/string-functions/Makefile). 
 Gcov_report is launched via a target [gcov_report](https://github.com/Katya0208/School_21/blob/main/string-functions/Makefile).
 
-### 7. math-functions - implementation of the math.h library
+### 7. math-functions - implementation of the math.h library.
 
 Implementation of all library functions: [files](https://github.com/Katya0208/School_21/tree/main/math-functions/files)
 
